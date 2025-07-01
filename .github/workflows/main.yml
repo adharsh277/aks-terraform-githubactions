@@ -20,13 +20,6 @@ jobs:
       - name: Terraform Apply
         run: terraform apply -auto-approve
         working-directory: terraform
-      - name: Terraform Init
-        run: terraform init
-        working-directory: terraform
-
-      - name: Terraform Apply
-        run: terraform apply -auto-approve
-        working-directory: terraform
 
       - name: Azure Login
         uses: azure/login@v1
