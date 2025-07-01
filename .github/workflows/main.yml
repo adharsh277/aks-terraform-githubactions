@@ -1,57 +1,8 @@
-name: Terraform + ACR + AKS CI/CD
-
-on:
-  push:
-    branches:
-      - main
-
-permissions:
-  id-token: write
-  contents: read
-
-env:
-  TF_VAR_client_id: ${{ secrets.ARM_CLIENT_ID }}
-  TF_VAR_client_secret: ${{ secrets.ARM_CLIENT_SECRET }}
-  TF_VAR_subscription_id: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-  TF_VAR_tenant_id: ${{ secrets.ARM_TENANT_ID }}
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Azure Login
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: 1.5.5
-
       - name: Terraform Init
         run: terraform init
+        working-directory: terraform
 
       - name: Terraform Apply
         run: terraform apply -auto-approve
-
-      - name: Azure CLI - Login again (for Docker + AKS)
-        run: |
-          az login --service-principal -u $TF_VAR_client_id -p $TF_VAR_client_secret --tenant $TF_VAR_tenant_id
-          az account set --subscription $TF_VAR_subscription_id
-
-      - name: Build Docker Image
-        run: |
-          docker build -t acrgha12345.azurecr.io/app:v1 .
-          az acr login --name acrgha12345
-          docker push acrgha12345.azurecr.io/app:v1
-
-      - name: Deploy to AKS
-        run: |
-          az aks get-credentials --resource-group rg-aks-gha --name aks-gha-cluster --overwrite-existing
-          kubectl apply -f k8s/
+        working-directory: terraform
 
