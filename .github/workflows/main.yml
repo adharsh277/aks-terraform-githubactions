@@ -5,53 +5,13 @@ on:
     branches:
       - main
 
+permissions:
+  id-token: write
+  contents: read
+
 env:
   TF_VERSION: 1.6.6
   AZURE_RESOURCE_GROUP: rg-aks-gha
   AZURE_AKS_CLUSTER: aks-gha-cluster
   ACR_NAME: acrgha12345
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
-      with:
-        terraform_version: ${{ env.TF_VERSION }}
-
-    - name: Azure Login (via OIDC)
-      uses: azure/login@v1
-      with:
-        client-id: ${{ secrets.ARM_CLIENT_ID }}
-        tenant-id: ${{ secrets.ARM_TENANT_ID }}
-        subscription-id: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-        enable-AzPSSession: false
-
-    - name: Terraform Init
-      run: terraform -chdir=terraform init
-
-    - name: Terraform Apply
-      run: terraform -chdir=terraform apply -auto-approve
-
-    - name: Azure CLI - Login again (for Docker + AKS)
-      uses: azure/cli@v1
-      with:
-        inlineScript: |
-          az acr login --name $ACR_NAME
-          az aks get-credentials --resource-group $AZURE_RESOURCE_GROUP --name $AZURE_AKS_CLUSTER --admin --overwrite-existing
-
-    - name: Build Docker Image
-      run: |
-        docker build -t $ACR_NAME.azurecr.io/hello:v1 .
-        docker push $ACR_NAME.azurecr.io/hello:v1
-
-    - name: Deploy to AKS
-      run: |
-        kubectl apply -f k8s/deployment.yaml
-        kubectl apply -f k8s/service.yaml
 
