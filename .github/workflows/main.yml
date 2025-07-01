@@ -9,7 +9,7 @@ env:
   TF_VERSION: 1.6.6
   AZURE_RESOURCE_GROUP: rg-aks-gha
   AZURE_AKS_CLUSTER: aks-gha-cluster
-  ACR_NAME: acrgha12345  # Your ACR name
+  ACR_NAME: acrgha12345
 
 jobs:
   deploy:
@@ -54,3 +54,4 @@ jobs:
       run: |
         kubectl apply -f k8s/deployment.yaml
         kubectl apply -f k8s/service.yaml
+
