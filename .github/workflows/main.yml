@@ -6,7 +6,6 @@ on:
       - main
 
 permissions:
-  id-token: write
   contents: read
 
 env:
@@ -14,4 +13,20 @@ env:
   AZURE_RESOURCE_GROUP: rg-aks-gha
   AZURE_AKS_CLUSTER: aks-gha-cluster
   ACR_NAME: acrgha12345
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Azure Login (via Secret)
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with
 
