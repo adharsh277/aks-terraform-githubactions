@@ -27,11 +27,9 @@ jobs:
         run: terraform init
         working-directory: terraform
 
-     - name: Terraform Apply
-       run: terraform apply -auto-approve
-       working-directory: terraform
-
-
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
+        working-directory: terraform
 
       - name: Azure CLI - Login again (for Docker + AKS)
         uses: azure/login@v1
@@ -50,6 +48,4 @@ jobs:
           az aks get-credentials --resource-group rg-aks-gha --name aks-gha-cluster
           kubectl apply -f terraform/k8s/deployment.yaml
           kubectl apply -f terraform/k8s/service.yaml
-
-
-
+ 
