@@ -8,9 +8,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: terraform
 
     steps:
       - name: Checkout Code
@@ -28,7 +25,27 @@ jobs:
 
       - name: Terraform Init
         run: terraform init
+        working-directory: terraform
 
       - name: Terraform Apply
         run: terraform apply -auto-approve
+        working-directory: terraform
+
+      - name: Azure CLI - Login again (for Docker + AKS)
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Build & Push Docker Image to ACR
+        run: |
+          docker build -t fastapi-aks-app .
+          az acr login --name acrgha12345
+          docker tag fastapi-aks-app acrgha12345.azurecr.io/fastapi-aks-app:v1
+          docker push acrgha12345.azurecr.io/fastapi-aks-app:v1
+
+      - name: Deploy to AKS
+        run: |
+          az aks get-credentials --resource-group rg-aks-gha --name aks-gha-cluster
+          kubectl apply -f terraform/k8s/deployment.yaml
+          kubectl apply -f terraform/k8s/service.yaml
 
